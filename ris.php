@@ -87,7 +87,7 @@ class TrainType {
             case 'RE':
                 return self::RE;
             case 'RB':
-                return self::RB;
+                return self::RE;
             default:
                 return 0;
         }
