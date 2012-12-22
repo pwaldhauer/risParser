@@ -57,6 +57,7 @@ class StationEntry {
     public $name;
     public $inTime;
     public $outTime;
+    public $is_skipped;
 
 }
 
@@ -132,6 +133,8 @@ class RisReader {
             $station->outTime->time = $this->trimTime(1, $match[1][$i]);
             $station->outTime->delay = $this->trimDelay(1, $match[2][$i]);
 
+	    $station->is_skipped = $this->checkIfSkipped($match[3][$i]);
+
             $train->stations[] = $station;
         }
 
@@ -161,7 +164,12 @@ class RisReader {
             return 0;
         }
 
-        if (preg_match('#<span class="bold red">\(\+([0-9]+)\)</span>#isU', $tmp[$i], $match)) {
+	$line = $tmp[$i];
+
+	// Sometimes there is "ca.", sometimes not.
+	$line = str_replace('ca. ', '', $line);
+
+        if (preg_match('#<span class=".*">\+([0-9]+)</span>#isU', $line, $match)) {
             return intval($match[1]) * 60;
         }
 
@@ -169,7 +177,15 @@ class RisReader {
     }
 
     private function trimStationName($str) {
-        return trim(str_replace('<br />', '', html_entity_decode($str)));
+        $tmp = explode('<br />', trim($str));
+
+        $station_name =  trim(html_entity_decode($tmp[0]));
+	return strip_tags($station_name);
+    }
+
+    private function checkIfSkipped($str) {
+	// utf-8 mist 
+	return preg_match('/Halt entf/', $str);
     }
 
 }
